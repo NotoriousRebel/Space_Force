@@ -7,7 +7,16 @@ import argparse
 Prints cool header for tool
 """
 def header():
-    pass #stubbed out for now
+    name = """
+      _____                     ______                 
+    /  ___|                    |  ___|                
+    \ `--. _ __   __ _  ___ ___| |_ ___  _ __ ___ ___ 
+     `--. \ '_ \ / _` |/ __/ _ \  _/ _ \| '__/ __/ _ \\
+    /\__/ / |_) | (_| | (_|  __/ || (_) | | | (_|  __/
+    \____/| .__/ \__,_|\___\___\_| \___/|_|  \___\___|
+          | |                                         
+          |_|"""
+    print(name)
 
 """
 Method parses commandline arguments
