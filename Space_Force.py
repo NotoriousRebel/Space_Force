@@ -1,17 +1,41 @@
 import subprocess
 import re
+import os
+import argparse
 
+"""
+Prints cool header for tool
+"""
 def header():
-    pass
+    pass #stubbed out for now
 
+"""
+Method parses commandline arguments
+"""
+def parseArgs():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-b', "-B", help="enter -b followed by binary (make sure it's one letter) ",type=str)
+    args = parser.parse_args()
+    if args.b is not None:
+        return args.b
+    else: #if user did not enter a commandline argument
+        raise Exception("No argument supplied")
 """
 Method that injects binary/binaries into spaces in vulnerable path
 """
-def inject_binary(vuln_files):
+def inject_binary(vuln_files,binary):
     for key in vuln_files:
-        marker_list = vuln_files.get(key)
-        for marker in marker_list: #each marker corresponds to a number that when indexed is a space
-            pass
+        print('Vulnerable file: ',key)
+        answer = input('Would you like to inject binary into this file? (y/n)')
+        if answer == 'y' or answer == 'Y' or answer == 'yes':
+            marker_list = vuln_files.get(key)
+            try:
+                new_path = key.replace(' ',binary) #replace all spaces in file with binary
+                print('new path is: ',new_path)
+                #os.rename(key,new_path)
+            except:
+                print('Could not inject binary into file: ',key)
+                continue
 
 """
 Method gets files that are vulnerable and stores them in dict
@@ -60,15 +84,16 @@ def lookforSpaces():
                 marker_list.append(i)
             elif i == (end-start-1): #if you have reached end of for loop update dict so we only have to update it once
                  vuln_files.update({file_path:marker_list})
-    return vuln_files
+    return vuln_files #just return set of vuln file paths ditch marker
 
 """
 Main method that handles logic
 """
 def main():
     header()
+    binary = parseArgs()
     vuln_files = lookforSpaces()
-    inject_binary(vuln_files)
+    inject_binary(vuln_files,binary)
 
 if __name__ == '__main__':
     main()
